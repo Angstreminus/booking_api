@@ -4,7 +4,7 @@ import "golang.org/x/crypto/bcrypt"
 
 type User struct {
 	ID          int `gorm:"AUTO_INCREMENT"`
-	Name        string
+	Email       string
 	Password    string
 	Appartments []Appartment
 }
