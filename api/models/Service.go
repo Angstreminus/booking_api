@@ -1,6 +1,10 @@
 package model
 
+import "gorm.io/gorm"
+
 type Service struct {
+	gorm.Model
+	AppartmentID   uint
 	Internet       bool
 	Food           bool
 	LuggageStorage bool

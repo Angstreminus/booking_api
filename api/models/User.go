@@ -1,12 +1,17 @@
 package model
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"log"
+
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
 
 type User struct {
-	ID          int `gorm:"AUTO_INCREMENT"`
+	gorm.Model
 	Email       string
 	Password    string
-	Appartments []Appartment
+	Appartments []Appartment `gorm:"foreignKey:UserRefer"`
 }
 
 func Encrypt(passwd string) ([]byte, error) {
@@ -15,4 +20,15 @@ func Encrypt(passwd string) ([]byte, error) {
 
 func Verify(hasedPassword, passwd string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hasedPassword), []byte(passwd))
+}
+
+func (u *User) SaveUser() (*User, error) {
+
+	err := DB.Create(&u).Error
+
+	if err != nil {
+		log.Fatal(err)
+		return &User{}, err
+	}
+	return u, err
 }

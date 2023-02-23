@@ -1,35 +1,31 @@
+//!!TODO metki
+
 package model
 
 import (
 	"errors"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-type Housing struct {
-	houseType string
-}
-
-func (h *Housing) String() string {
-	return h.houseType
-}
-
-var (
-	Undefined = Housing{""}
-	Mansion   = Housing{"Mansion"}
-	House     = Housing{"House"}
-	Room      = Housing{"Room"}
-	Hostel    = Housing{"Hostel"}
+const (
+	Undefined = ""
+	Mansion   = "Mansion"
+	House     = "House"
+	Room      = "Room"
+	Hostel    = "Hostel"
 )
 
-func GetHouseType(house string) (Housing, error) {
+func GetHouseType(house string) (string, error) {
 	switch house {
-	case Mansion.houseType:
-		return Mansion, nil
-	case House.houseType:
+	case Undefined:
+		return Undefined, nil
+	case House:
 		return House, nil
-	case Room.houseType:
+	case Room:
 		return Room, nil
-	case Hostel.houseType:
+	case Hostel:
 		return Hostel, nil
 	}
 
@@ -37,9 +33,10 @@ func GetHouseType(house string) (Housing, error) {
 }
 
 type Appartment struct {
-	ID        int
-	Type      Housing
-	BookStart time.Time
-	BookEnd   time.Time
-	Service   Service
+	gorm.Model
+	UserRefer     uint
+	HousingType   string
+	BookStartDate time.Time
+	BookEndDate   time.Time
+	Service       Service
 }
