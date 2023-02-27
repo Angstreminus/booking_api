@@ -15,7 +15,7 @@ func initializeRoutes() {
 var router *gin.Engine
 
 func main() {
-	model.ConnectDataBase()
+	model.InitDB()
 
 	router = gin.Default()
 	router.SetTrustedProxies([]string{"127.0.0.1"})

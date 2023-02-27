@@ -2,33 +2,50 @@ package model
 
 import (
 	"log"
+	"os"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
+	Role        string
 	Email       string
 	Password    string
 	Appartments []Appartment `gorm:"foreignKey:UserRefer"`
 }
 
-func Encrypt(passwd string) ([]byte, error) {
-	return bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost)
+type Jwt struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+	*jwt.StandardClaims
+}
+
+func Encrypt(passwd string) []byte {
+	pswd, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return pswd
 }
 
 func Verify(hasedPassword, passwd string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hasedPassword), []byte(passwd))
 }
-
-func (u *User) SaveUser() (*User, error) {
-
-	err := DB.Create(&u).Error
+func SetRole(role string) string {
+	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Fatal(err)
-		return &User{}, err
+		log.Fatal("Error occured: ", err)
 	}
-	return u, err
+
+	if role == os.Getenv("ADMIN_ROLE_ID") {
+		return "Admin"
+	} else {
+		return "User"
+	}
 }

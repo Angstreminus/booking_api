@@ -3,5 +3,6 @@ content-type: application/json
 
 {
     "email": "sdfsdfsf",
-    "password": "ovdsdsf.com"
+    "password": "ovdsdsf.com",
+    "role_id": "User"
 }

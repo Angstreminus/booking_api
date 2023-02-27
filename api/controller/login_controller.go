@@ -1,61 +1,42 @@
 package controller
 
 import (
-	"booking/api/auth"
 	model "booking/api/models"
+	"errors"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type RegisterInput struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	RoleID   string `json:"role_id" binding:"required"`
 }
 
-func Login(c *gin.Context) {
-	usr := new(model.User)
-
-	if err := c.BindJSON(usr); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	token, err := SingIn(usr.Email, usr.Password)
-
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	c.JSON(200, gin.H{
-		"token": token,
-	})
+type ReqLoginBody struct {
+	Email    string `binding:"required,email"`
+	Password string `binding:"required,password"`
 }
 
-func SingIn(email, password string) (string, error) {
-	var (
-		err error
-		DB  *gorm.DB
-	)
-	user := model.User{}
+type ResLoginBody struct {
+	Token string `json:"token"`
+}
 
-	err = DB.Debug().Model(model.User{}).Where("email = ?", email).Take(&user).Error
+func NewWithClaims(claims jwt.Claims) (ss string, err error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	ss, err = token.SignedString([]byte("codedoct"))
+	return
+}
 
-	if err != nil {
-		return "", err
+func findUsr(email string) (user model.User, err error) {
+	if err := model.DB.Where("email = ?", email).First(&user).Error; err != nil {
+		return user, err
 	}
-
-	err = model.Verify(user.Password, password)
-
-	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return "", err
-	}
-
-	return auth.CreateToken(uint32(user.ID))
+	return user, nil
 }
 
 func Register(c *gin.Context) {
@@ -64,16 +45,66 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	u := model.User{}
-	u.Email = input.Email
-	u.Password = input.Password
-
-	_, err := u.SaveUser()
-
+	u := model.User{
+		Role:        model.SetRole(input.RoleID),
+		Email:       input.Email,
+		Password:    string(model.Encrypt(input.Password)),
+		Appartments: nil,
+	}
+	err := model.DB.Create(&u).Error
 	if err != nil {
+		log.Fatal(err)
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
+}
+
+func LoginCheck(c *gin.Context) (*ResLoginBody, int, error) {
+
+	var (
+		loginpt ReqLoginBody
+		resBody ResLoginBody
+	)
+	if err := c.ShouldBindJSON(&loginpt); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
+	user, err := findUsr(loginpt.Email)
+	if err != nil {
+		return nil, http.StatusBadRequest, errors.New("UserNotFound")
+	}
+
+	if err = model.Verify(user.Password, loginpt.Password); err != nil {
+		return nil, http.StatusBadRequest, errors.New("PASSWORD INCORRECT")
+	}
+	claims := model.Jwt{
+		ID:    int(user.ID),
+		Email: user.Email,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
+		},
+	}
+
+	ss, err := NewWithClaims(claims)
+
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	resBody.Token = ss
+
+	return &resBody, http.StatusOK, nil
+}
+
+func Login(ctx gin.Context) {
+	var reqBody ReqLoginBody
+
+	if err := ctx.ShouldBindJSON(&reqBody); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	resBody, errStatus, err := LoginCheck(&reqBody)
+	if err != nil {
+		ctx.JSON(errStatus, resBody)
+	}
+
 }
