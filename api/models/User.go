@@ -16,6 +16,7 @@ type User struct {
 	Email       string
 	Password    string
 	Appartments []Appartment `gorm:"foreignKey:UserRefer"`
+	Token       string
 }
 
 type Jwt struct {

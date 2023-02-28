@@ -25,9 +25,18 @@ func ConnectDataBase() (*gorm.DB, error) {
 }
 
 func InitDB() {
-	var err error
+	var (
+		err      error
+		usr      = User{}
+		srv      = Service{}
+		appartmt = Appartment{}
+	)
 	DB, err = ConnectDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
+	DB.AutoMigrate(&srv)
+	DB.AutoMigrate(&appartmt)
+	DB.AutoMigrate(&usr)
+
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	model "booking/api/models"
+	response "booking/api/responses"
 	"errors"
 	"log"
 	"net/http"
@@ -18,8 +19,8 @@ type RegisterInput struct {
 }
 
 type ReqLoginBody struct {
-	Email    string `binding:"required,email"`
-	Password string `binding:"required,password"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type ResLoginBody struct {
@@ -30,6 +31,11 @@ func NewWithClaims(claims jwt.Claims) (ss string, err error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err = token.SignedString([]byte("codedoct"))
 	return
+}
+
+func UpdateToken(user model.User, ss string) error {
+	user.Token = ss
+	return model.DB.Save(&user).Error
 }
 
 func findUsr(email string) (user model.User, err error) {
@@ -58,15 +64,11 @@ func Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
 }
 
-func LoginCheck(c *gin.Context) (*ResLoginBody, int, error) {
+func LoginCheck(loginpt *ReqLoginBody) (*ResLoginBody, int, error) {
 
 	var (
-		loginpt ReqLoginBody
 		resBody ResLoginBody
 	)
-	if err := c.ShouldBindJSON(&loginpt); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	}
 
 	user, err := findUsr(loginpt.Email)
 	if err != nil {
@@ -95,7 +97,7 @@ func LoginCheck(c *gin.Context) (*ResLoginBody, int, error) {
 	return &resBody, http.StatusOK, nil
 }
 
-func Login(ctx gin.Context) {
+func Login(ctx *gin.Context) {
 	var reqBody ReqLoginBody
 
 	if err := ctx.ShouldBindJSON(&reqBody); err != nil {
@@ -104,7 +106,9 @@ func Login(ctx gin.Context) {
 
 	resBody, errStatus, err := LoginCheck(&reqBody)
 	if err != nil {
-		ctx.JSON(errStatus, resBody)
+		response.Error(ctx, errStatus, err.Error())
+		return
 	}
+	response.Json(ctx, http.StatusOK, resBody)
 
 }
