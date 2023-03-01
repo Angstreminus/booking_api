@@ -56,6 +56,10 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if _, err := findUsr(input.Email); err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "User with this email alreaady exist"})
+	}
 	u := model.User{
 		Role:        model.SetRole(input.RoleID),
 		Email:       input.Email,
