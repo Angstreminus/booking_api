@@ -34,7 +34,16 @@ type Appartment struct {
 	gorm.Model
 	UserRefer     uint
 	HousingType   string
+	RentPrice     int
 	BookStartDate time.Time
 	BookEndDate   time.Time
 	Service       Service
+}
+
+//!Searching Appartment
+func FindAppartmentById(id uint) (appratment Appartment, err error) {
+	if err := DB.Where("id = ?", id).First(&appratment).Error; err != nil {
+		return appratment, err
+	}
+	return appratment, nil
 }

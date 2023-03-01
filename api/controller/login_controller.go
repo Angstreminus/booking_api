@@ -44,7 +44,12 @@ func findUsr(email string) (user model.User, err error) {
 	}
 	return user, nil
 }
-
+func FindUsrById(id uint) (user model.User, err error) {
+	if err := model.DB.Where("id = ?", id).First(&user).Error; err != nil {
+		return user, err
+	}
+	return user, nil
+}
 func Register(c *gin.Context) {
 	var input RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {

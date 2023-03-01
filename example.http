@@ -21,6 +21,9 @@ content-type: application/json
 
 {
     "admin_id": "....",
-    "housing_type": "Hostel"
+    "housing_type": "Hostel",
+    "rent_price": 500
 }
 #############################
+
+//!TODO add the book request
