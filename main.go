@@ -11,6 +11,8 @@ func initializeRoutes() {
 	router.POST("/register", controller.Register)
 	router.POST("/login", controller.Login)
 	router.POST("/appartments/new", controller.CreateAppartment)
+	router.POST("/user/bill", controller.BookHousing)
+	router.GET("/user/bill", controller.GetUserSummaryBill)
 }
 
 var router *gin.Engine
