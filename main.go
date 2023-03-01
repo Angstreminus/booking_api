@@ -10,6 +10,7 @@ import (
 func initializeRoutes() {
 	router.POST("/register", controller.Register)
 	router.POST("/login", controller.Login)
+	router.POST("/appartments/new", controller.CreateAppartment)
 }
 
 var router *gin.Engine

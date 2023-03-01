@@ -5,13 +5,3 @@ services:
       - .env
     ports:
       - "5055:5432"
-  server:
-    build:
-      context: .
-    env_file: .env
-    depends_on:
-      - database
-    networks:
-      - default
-    ports:
-    - "8080:8080"

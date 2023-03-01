@@ -16,3 +16,11 @@ content-type: application/json
     "password": "sadasdas123"
 }
 #############################
+POST http://localhost:8080/appartments/new HTTP/1.1
+content-type: application/json
+
+{
+    "admin_id": "....",
+    "housing_type": "Hostel"
+}
+#############################

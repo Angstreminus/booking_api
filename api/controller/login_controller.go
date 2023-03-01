@@ -68,6 +68,7 @@ func LoginCheck(loginpt *ReqLoginBody) (*ResLoginBody, int, error) {
 
 	var (
 		resBody ResLoginBody
+		usr     = model.User{}
 	)
 
 	user, err := findUsr(loginpt.Email)
@@ -93,13 +94,14 @@ func LoginCheck(loginpt *ReqLoginBody) (*ResLoginBody, int, error) {
 	}
 
 	resBody.Token = ss
+	model.DB.Model(&usr).Where("email = ?", loginpt.Email).Update("token", ss)
 
 	return &resBody, http.StatusOK, nil
 }
-
 func Login(ctx *gin.Context) {
-	var reqBody ReqLoginBody
-
+	var (
+		reqBody ReqLoginBody
+	)
 	if err := ctx.ShouldBindJSON(&reqBody); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -109,6 +111,7 @@ func Login(ctx *gin.Context) {
 		response.Error(ctx, errStatus, err.Error())
 		return
 	}
+
 	response.Json(ctx, http.StatusOK, resBody)
 
 }

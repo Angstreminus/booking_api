@@ -1,5 +1,3 @@
-//!!TODO metki
-
 package model
 
 import (

@@ -34,6 +34,13 @@ func Encrypt(passwd string) []byte {
 	return pswd
 }
 
+func CheckAdmin(admin_ID string) bool {
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatal(err)
+	}
+	return admin_ID == os.Getenv("ADMIN_ROLE_ID")
+}
+
 func Verify(hasedPassword, passwd string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hasedPassword), []byte(passwd))
 }
